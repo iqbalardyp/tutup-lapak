@@ -1,0 +1,33 @@
+# Exclude .env files (sensitive data)
+.env
+.env.example
+
+# Exclude Git-related files and directories
+.git
+.gitignore
+
+# Exclude local development files
+README.md
+Makefile
+sqlc.yaml
+
+# Exclude editor and OS-specific files
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Exclude Go build artifacts (if any are generated locally)
+*.out
+*.exe
+*.o
+*.a
+
+# Exclude dependencies (if not vendored)
+vendor/
+
+# Exclude local tooling caches
+node_modules/
