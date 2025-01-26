@@ -2,6 +2,7 @@ package config
 
 import (
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -9,10 +10,15 @@ import (
 	"time"
 )
 
+var (
+	sortByCache = make(map[string]bool)
+)
+
 func NewValidator() *validator.Validate {
 	validate := validator.New()
 	validate.RegisterValidation("time_validator", timeValidator)
 	validate.RegisterValidation("is_uri", uriValidator)
+	validate.RegisterValidation("sort_by", productSortByValidator)
 	return validate
 }
 
@@ -68,4 +74,28 @@ func uriValidator(fl validator.FieldLevel) bool {
 	}
 
 	return true
+}
+
+func productSortByValidator(fl validator.FieldLevel) bool {
+	sortBy, ok := fl.Field().Interface().(string)
+	if !ok {
+		return false
+	}
+
+	if sortBy == "" {
+		return false
+	} else if sortBy == "newest" || sortBy == "cheapest" {
+		return true
+	}
+
+	if result, found := sortByCache[sortBy]; found {
+		return result
+	}
+	isValid, err := regexp.MatchString("^sold-[0-9]+$", sortBy)
+	if err != nil {
+		return false
+	}
+	sortByCache[sortBy] = isValid
+
+	return isValid
 }
