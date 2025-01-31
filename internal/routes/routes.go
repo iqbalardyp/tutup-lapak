@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	custom_middleware "tutup-lapak/internal/middleware"
+	product_handler "tutup-lapak/internal/product/handler"
 	"tutup-lapak/pkg/response"
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
@@ -11,9 +12,10 @@ import (
 )
 
 type RouteConfig struct {
-	App        *echo.Echo
-	S3Uploader *manager.Uploader
-	Middleware *custom_middleware.AuthConfig
+	App            *echo.Echo
+	S3Uploader     *manager.Uploader
+	Middleware     *custom_middleware.AuthConfig
+	ProductHandler *product_handler.ProductHandler
 }
 
 func (r *RouteConfig) SetupRoutes() {
@@ -30,7 +32,19 @@ func (r *RouteConfig) SetupRoutes() {
 }
 
 func (r *RouteConfig) setupPublicRoutes(group *echo.Group) {
+	group.GET("/product", r.ProductHandler.GetProducts)
 }
 
 func (r *RouteConfig) setupAuthRoutes(group *echo.Group, m echo.MiddlewareFunc) {
+	r.setupProductAuthRoutes(group, m)
+}
+
+func (r *RouteConfig) setupProductAuthRoutes(group *echo.Group, m echo.MiddlewareFunc) {
+	product := group.Group("/product")
+	// product.POST("", r.ProductHandler.CreateProduct, m)
+	// product.PATCH("/:productId", r.ProductHandler.UpdateProduct, m)
+	// product.DELETE("/:productId", r.ProductHandler.DeleteProduct, m)
+	product.POST("", r.ProductHandler.CreateProduct)
+	product.PATCH("/:productId", r.ProductHandler.UpdateProduct)
+	product.DELETE("/:productId", r.ProductHandler.DeleteProduct)
 }

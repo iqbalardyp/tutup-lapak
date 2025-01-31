@@ -35,6 +35,8 @@ func HandlePgError(err error, msg string) error {
 	switch code {
 	case UniqueViolation:
 		return errors.Wrap(ErrConflict, "email already exists")
+	case ForeignKeyViolation:
+		return errors.Wrap(ErrBadRequest, "fileId not exists")
 	default:
 		return errors.Wrap(err, msg)
 	}

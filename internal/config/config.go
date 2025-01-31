@@ -4,6 +4,9 @@ import (
 	"time"
 	"tutup-lapak/db"
 	custom_middleware "tutup-lapak/internal/middleware"
+	product_handler "tutup-lapak/internal/product/handler"
+	product_repository "tutup-lapak/internal/product/repository"
+	product_usecase "tutup-lapak/internal/product/usecase"
 	"tutup-lapak/internal/routes"
 	"tutup-lapak/pkg/dotenv"
 
@@ -32,10 +35,16 @@ func Bootstrap(config *BootstrapConfig) {
 	}))
 
 	authMiddleware := custom_middleware.NewAuthMiddleware(config.Env)
+
+	productRepo := product_repository.NewProductRepo(config.DB.Pool)
+	productUsecase := product_usecase.NewProductUsecase(productRepo)
+	productHandler := product_handler.NewProductHandler(productUsecase, config.Validator)
+
 	routes := routes.RouteConfig{
-		App:        config.App,
-		S3Uploader: config.S3Uploader,
-		Middleware: authMiddleware,
+		App:            config.App,
+		S3Uploader:     config.S3Uploader,
+		Middleware:     authMiddleware,
+		ProductHandler: productHandler,
 	}
 
 	routes.SetupRoutes()

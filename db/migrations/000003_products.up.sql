@@ -12,6 +12,7 @@ CREATE TABLE products (
     id BIGSERIAL PRIMARY KEY,
     seller_id BIGINT NOT NULL,
     file_id BIGINT,
+    name VARCHAR(255),
     category enum_product_categories,
     qty INT,
     price INT,
@@ -41,4 +42,5 @@ CREATE TRIGGER set_timestamp_products
 CREATE INDEX idx_products_id ON products(id);
 CREATE INDEX idx_products_seller_id ON products(seller_id);
 CREATE INDEX idx_products_file_id ON products(file_id);
+CREATE INDEX idx_products_newest ON products(GREATEST(created_at, updated_at));
 -- more index otw
