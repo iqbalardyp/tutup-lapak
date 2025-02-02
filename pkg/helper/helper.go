@@ -35,3 +35,11 @@ func DerefGeneric[T any](value interface{}, fallback T) T {
 func FormatTimeToUTC(t time.Time) string {
 	return t.UTC().Format("2006-01-02T15:04:05.000Z")
 }
+
+func MapToSlice[K comparable, V any](inputMap map[K]V) []V {
+	slice := make([]V, 0, len(inputMap))
+	for _, value := range inputMap {
+		slice = append(slice, value)
+	}
+	return slice
+}

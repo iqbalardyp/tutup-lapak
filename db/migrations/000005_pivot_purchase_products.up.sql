@@ -3,6 +3,7 @@ CREATE TABLE pivot_purchase_products (
     id BIGSERIAL PRIMARY KEY,
     purchase_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
+    qty BIGINT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE

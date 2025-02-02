@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"tutup-lapak/internal/product/dto"
 	customErrors "tutup-lapak/pkg/custom-errors"
 
@@ -109,6 +110,27 @@ const (
 		END ASC
 	LIMIT @limit
 	OFFSET @offset;`
+	queryGetProductsByIds = `
+	SELECT
+		p.id::TEXT id,
+		p.name,
+		p.category,
+		p.qty,
+		p.price,
+		p.sku,
+		p.updated_at,
+		p.created_at,
+		f.id::TEXT file_id,
+		f.uri file_uri,
+		f.thumbnail_uri file_thumbnail_uri,
+		s.id::TEXT seller_id,
+		s.bank_account_name seller_bank_account_name,
+		s.bank_account_holder seller_bank_account_holder,
+		s.bank_account_number seller_bank_account_number
+	FROM products p
+	JOIN files f ON f.id = p.file_id
+	JOIN sellers s ON s.id = p.seller_id
+	WHERE p.id IN (%s);`
 )
 
 func (r *ProductRepo) CreateProduct(ctx context.Context, sellerID *int, payload *dto.ProductPayload) (*dto.ProductResponse, error) {
@@ -261,4 +283,54 @@ func (r *ProductRepo) DeleteProduct(ctx context.Context, ID, sellerID *int) erro
 		return fmt.Errorf("could not commit transaction: %w", err)
 	}
 	return nil
+}
+
+func (r *ProductRepo) GetProductsByIDs(ctx context.Context, ids []int) ([]dto.ProductWithSeller, error) {
+	if len(ids) == 0 {
+		return []dto.ProductWithSeller{}, nil
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+
+	for i, id := range ids {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = id
+	}
+
+	query := fmt.Sprintf(queryGetProductsByIds, strings.Join(placeholders, ","))
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, customErrors.HandlePgError(err, "failed to get products by IDs")
+	}
+	defer rows.Close()
+
+	var products []dto.ProductWithSeller
+	for rows.Next() {
+		var product dto.ProductWithSeller
+		if err := rows.Scan(
+			&product.ProductID,
+			&product.Name,
+			&product.Category,
+			&product.Qty,
+			&product.Price,
+			&product.Sku,
+			&product.CreatedAt,
+			&product.UpdatedAt,
+			&product.FileID,
+			&product.FileURI,
+			&product.FileThumbnailURI,
+			&product.SellerId,
+			&product.BankAccountName,
+			&product.BankAccountHolder,
+			&product.BankAccountNumber,
+		); err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	return products, nil
 }
