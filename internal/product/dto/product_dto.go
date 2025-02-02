@@ -33,3 +33,11 @@ type ProductResponse struct {
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
 }
+
+type ProductWithSeller struct {
+	ProductResponse
+	SellerId          string
+	BankAccountName   string
+	BankAccountHolder string
+	BankAccountNumber string
+}

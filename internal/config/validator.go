@@ -19,6 +19,7 @@ func NewValidator() *validator.Validate {
 	validate.RegisterValidation("time_validator", timeValidator)
 	validate.RegisterValidation("is_uri", uriValidator)
 	validate.RegisterValidation("sort_by", productSortByValidator)
+	validate.RegisterValidation("contact_detail_validator", contactDetailValidation)
 	return validate
 }
 
@@ -98,4 +99,17 @@ func productSortByValidator(fl validator.FieldLevel) bool {
 	sortByCache[sortBy] = isValid
 
 	return isValid
+}
+
+func contactDetailValidation(fl validator.FieldLevel) bool {
+	contactType := fl.Parent().FieldByName("SenderContactType").String()
+	contactDetail := fl.Field().String()
+
+	if contactType == "phone" {
+		phoneRegex := regexp.MustCompile(`\+\d{1,15}$`)
+		return phoneRegex.MatchString(contactDetail)
+	} else if contactType == "email" {
+		return validator.New().Var(contactDetail, "email") == nil
+	}
+	return false
 }
