@@ -92,15 +92,11 @@ const (
 		AND (@sku::TEXT IS NULL OR p.sku = @sku::TEXT)
 		AND (@category::enum_product_categories IS NULL OR p.category = @category::enum_product_categories)
 		AND (COALESCE(@sortBy::TEXT, '') !~ '^[0-9]+$'
-			OR (COALESCE(@sortBy::TEXT, '') ~ '^[0-9]+$' AND p.id IN (
-				SELECT DISTINCT ON (ppp.product_id) ppp.product_id
-				FROM pivot_purchase_products ppp
-				WHERE ppp.created_at >= NOW() - (@sortBy::TEXT || ' seconds')::INTERVAL
-				ORDER BY ppp.product_id, ppp.created_at DESC
-				LIMIT @limit
-				OFFSET @offset
-				))
-			)
+			OR (
+				COALESCE(@sortBy::TEXT, '') ~ '^[0-9]+$'
+				AND p.last_sold_at NOTNULL
+				AND p.last_sold_at >= NOW() - (@sortBy::TEXT || ' seconds')::INTERVAL
+			))
 	ORDER BY
 		CASE 
 			WHEN @sortBy::TEXT = 'newest' THEN GREATEST(p.created_at, p.updated_at)

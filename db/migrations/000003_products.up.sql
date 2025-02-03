@@ -19,6 +19,7 @@ CREATE TABLE products (
     sku VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_sold_at TIMESTAMPTZ,
     FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
     FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
 );
